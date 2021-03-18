@@ -28,8 +28,8 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .service(api::hello)
-            .service(api::index)
+            .service(api::queue_all)
+            .service(api::queue_get)
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
