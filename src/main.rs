@@ -1,16 +1,8 @@
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpServer};
 use std::env;
 use mongodb::{Client, options::ClientOptions};
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello, world!")
-}
-
-#[get("/{name}")]
-async fn index(web::Path(name): web::Path<String>) -> impl Responder {
-    format!("Hello {}!", name)
-}
+mod api;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -36,8 +28,8 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .service(hello)
-            .service(index)
+            .service(api::hello)
+            .service(api::index)
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
