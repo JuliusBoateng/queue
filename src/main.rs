@@ -7,7 +7,7 @@ mod api;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Parse a connection string into an options struct.
-    let db_connect = env::var("DBCONNECT").unwrap();
+    let db_connect = env::var("DBCONNECT").expect("Missing DBCONNECT environment variable");
     let mut client_options = ClientOptions::parse(&db_connect).await.expect("Can't Connect to Mongo");
     
     // Manually set an option.
