@@ -1,8 +1,7 @@
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, web, post, HttpResponse, Responder};
 use chrono::Utc; 
 
-mod db; 
-
+mod db;
 
 
 #[get("/queues")]
@@ -17,6 +16,12 @@ pub async fn queue_all() -> impl Responder {
 
 #[get("/queues/{name}")]
 pub async fn queue_get(web::Path(qid): web::Path<String>) -> impl Responder { 
-    let mystring = db::test_hello();  
-    format!("Queue {}! mystring: {}", qid, mystring) 
+    format!("Queue {}", qid) 
 }
+
+#[post("/queues")] 
+pub async fn create_queue(new_queue: String)-> impl Responder{ 
+    let message = db::add_queue(new_queue); 
+    println!("{}", message); 
+    HttpResponse::Ok().body(message)
+} 
