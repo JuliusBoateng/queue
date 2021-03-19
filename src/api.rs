@@ -17,6 +17,7 @@ pub async fn queue_all() -> impl Responder {
 
 #[get("/queues/{name}")]
 pub async fn queue_get(web::Path(qid): web::Path<String>) -> impl Responder { 
-    let mystring = db::test_hello();  
-    format!("Queue {}! mystring: {}", qid, mystring) 
+    let mystring = db::test_hello(); 
+    let dbstring = db::set_up_db().await; 
+    format!("Queue {}! mystring: {} dbstring: {}", qid, mystring, dbstring) 
 }
