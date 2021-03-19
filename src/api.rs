@@ -18,10 +18,10 @@ pub async fn queue_all() -> impl Responder {
 pub async fn queue_get(web::Path(qid): web::Path<String>) -> impl Responder { 
     format!("Queue {}", qid) 
 }
-
+/* 
 #[post("/queues")] 
 pub async fn create_queue(new_queue: String)-> impl Responder{ 
     let message = db::add_queue(new_queue); 
     println!("{}", message); 
     HttpResponse::Ok().body(message)
-} 
+} */ 

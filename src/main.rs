@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(api::queue_all)
             .service(api::queue_get)
-            .service(api::create_queue)
+            //.service(api::create_queue)
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
