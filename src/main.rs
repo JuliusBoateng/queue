@@ -1,6 +1,6 @@
 use actix_web::{App, HttpServer};
 use std::env;
-use mongodb::{Client, options::ClientOptions};
+use mongodb::{Client, options::ClientOptions, bson::{doc, Bson}};
 
 mod api; 
 
@@ -20,6 +20,15 @@ async fn main() -> std::io::Result<()> {
     for db_name in client.list_database_names(None, None).await.expect("Can't list database names") {
         println!("It worked: {}", db_name);
     }
+    // From Example 
+    let database = client.database("ourdb");  
+    let collection = database.collection("queues"); 
+    let docs = vec! [ 
+        doc! {"name": "systems queue"}, 
+        doc! {"name": "data structures queue"},
+    ];
+    collection.insert_many(docs, None).await.expect("Couldn't insert docs"); 
+    // End of example 
 
     let port:u32 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
