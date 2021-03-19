@@ -2,7 +2,7 @@ use actix_web::{App, HttpServer};
 use std::env;
 use mongodb::{Client, options::ClientOptions};
 
-mod api;
+mod api; 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
