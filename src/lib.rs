@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Queue {
+pub struct TA {
     pub id: String,
     pub course: String,
     pub name: String,

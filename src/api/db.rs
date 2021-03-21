@@ -1,6 +1,6 @@
 use std::env;
 use mongodb::{Client, options::{ClientOptions, FindOptions}, bson::{doc, Bson}};
-//use futures::stream::StreamExt; 
+// use futures::stream::StreamExt;
  
 
 // Put database functions in this file 
@@ -9,33 +9,49 @@ pub fn test_hello() -> String{
     return "String from test_hello() in api/db!".to_string()
 } 
 
-pub async fn set_up_db() -> mongodb::Client{
+pub async fn connect_to_db() -> mongodb::Database {
     // Parse a connection string into an options struct.
     let db_connect = env::var("DBCONNECT").expect("Missing DBCONNECT environment variable");
     let mut client_options = ClientOptions::parse(&db_connect).await.expect("Can't Connect to Mongo");
     
     // Manually set an option.
-    client_options.app_name = Some("My App".to_string());
+    client_options.app_name = Some("project queue".to_string());
 
     // Get a handle to the deployment.
     let client = Client::with_options(client_options).expect("Can't get a handle to deployment");
-    
-    return client
-    //return "I set up the database connection!".to_string() 
+
+    let db = client.database("queue");
+
+    return db
 }
 
-pub async fn set_up_collection(client: mongodb::Client) -> String { 
-    // List the names of the databases in that deployment.
-    println!("These are our databases:"); 
-    for db_name in client.list_database_names(None, None).await.expect("can't print database name") {
-        println!("{}", db_name);
-    }   
-    let db = client.database("ourdb");
-    println!("These are our collections:"); 
+pub async fn insert_ta(db: mongodb::Database, ta: queue::TA) -> () {
+    let collection = db.collection("ta");
+    // let test = "\"title\": \"1984\", \"author\": \"George Orwell\"";
+    // pub id: String,
+    // pub course: String,
+    // pub name: String,
+    // pub start: DateTime<Utc>,
+    // pub end: DateTime<Utc>,
+    // pub location: String,
+    // pub students: Vec<Student>,
+    // format!(serde_json::to_string(&ta.Student).unwrap())
+    let docs = vec![
+        doc! { "uuid" : format!("{}", ta.id), "course" : format!("{}", ta.course), "name" : format!("{}", ta.name), "start" : format!("{}", ta.start), "end" : format!("{}", ta.end), "location" : format!("{}", ta.location), "students" : "[]"}
+    ];
+    collection.insert_many(docs, None).await.expect("Can't Insert into Mongo");
+}
+
+// pub async fn insert_ta_object()
+
+// pub async fn set_up_collection(client: mongodb::Client) -> String { 
+
+
+    // println!("These are our collections:"); 
     // List the names of the collections in that database.
-    for collection_name in db.list_collection_names(None).await.expect("can't print collection name") {
-        println!("{}", collection_name);
-    }   
+    // for collection_name in db.list_collection_names(None).await.expect("can't print collection name") {
+    //     println!("{}", collection_name);
+    // }   
     /*
     let collection = db.collection("queues"); 
     let docs = vec![ 
@@ -61,7 +77,7 @@ pub async fn set_up_collection(client: mongodb::Client) -> String {
             }
         }
     }   */
-    return "string from set_up_collection".to_string() 
+    // return "string from set_up_collection".to_string() 
 
-} 
+// } 
 
