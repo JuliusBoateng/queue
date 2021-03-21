@@ -1,8 +1,7 @@
 use std::env;
-use mongodb::{Client, options::{ClientOptions, FindOptions}, bson::{doc, Bson}};
-// use futures::stream::StreamExt;
+use mongodb::{Client, options::{ClientOptions, FindOptions}, bson::{doc, Bson}, error::Error};
+use futures::stream::StreamExt;
  
-
 // Put database functions in this file 
 pub fn test_hello() -> String{ 
     println!("This is the test func in db.rs!"); 
@@ -26,7 +25,7 @@ pub async fn connect_to_db() -> mongodb::Database {
 }
 
 pub async fn insert_ta(db: mongodb::Database, ta: queue::TA) -> () {
-    let collection = db.collection("ta");
+//     let collection = db.collection("ta");
     // let test = "\"title\": \"1984\", \"author\": \"George Orwell\"";
     // pub id: String,
     // pub course: String,
@@ -36,13 +35,66 @@ pub async fn insert_ta(db: mongodb::Database, ta: queue::TA) -> () {
     // pub location: String,
     // pub students: Vec<Student>,
     // format!(serde_json::to_string(&ta.Student).unwrap())
-    let docs = vec![
-        doc! { "uuid" : format!("{}", ta.id), "course" : format!("{}", ta.course), "name" : format!("{}", ta.name), "start" : format!("{}", ta.start), "end" : format!("{}", ta.end), "location" : format!("{}", ta.location), "students" : "[]"}
-    ];
-    collection.insert_many(docs, None).await.expect("Can't Insert into Mongo");
+    
+    // let docs = vec![
+    //     doc! {ta}
+    // ];
+    
+//     collection.insert_many(docs, None).await.expect("Can't Insert into Mongo");
+//     let filter = doc! { "author": "George Orwell" };
+    
+//     let find_options = FindOptions::builder().sort(doc! { "title": 1 }).build();
+//     let mut cursor = collection.find(filter, find_options).await?;
+
+//     // Iterate over the results of the cursor.
+//     while let Some(result) = cursor.next().await {
+//         match result {
+//             Ok(document) => {
+//                 if let Some(title) = document.get("title").and_then(Bson::as_str) {
+//                     println!("title: {}", title);
+//                 }  else {
+//                     println!("no title found");
+//                 }
+//             }
+//             Err(e) => return Err(e.into()),
+//         }
+//     }
+// }
 }
 
-// pub async fn insert_ta_object()
+// Result<(), mongodb::error::Error>
+
+pub async fn insert_test(db: mongodb::Database) -> std::result::Result<(), mongodb::error::Error> {
+    let collection = db.collection("books");
+
+    let docs = vec![
+        doc! { "title": "1984", "author": "George Orwell" },
+        doc! { "title": "Animal Farm", "author": "George Orwell" },
+        doc! { "title": "The Great Gatsby", "author": "F. Scott Fitzgerald" },
+    ];
+
+    // Insert some documents into the "mydb.books" collection.
+    collection.insert_many(docs, None).await.expect("Can't insert");
+
+    // Query the documents in the collection with a filter and an option.
+    let filter = doc! { "author": "George Orwell" };
+    let find_options = FindOptions::builder().sort(doc! { "title": 1 }).build();
+    let mut cursor = collection.find(filter, find_options).await.expect("Can't find");
+
+   // Iterate over the results of the cursor.
+    while let Some(result) = cursor.next().await {
+        match result {
+            Ok(document) => {
+                if let Some(title) = document.get("title").and_then(Bson::as_str) {
+                    println!("title: {}", title);
+                }  else {
+                    println!("no title found");
+                }
+            }
+            Err(e) => return Err(e.into()),
+        }
+    }
+}
 
 // pub async fn set_up_collection(client: mongodb::Client) -> String { 
 

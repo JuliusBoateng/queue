@@ -40,3 +40,21 @@ pub async fn queue_insert() -> impl Responder {
     // format!("Done")
     // db::insert_ta(db, ta);
 }
+
+#[get("/insert_test")]
+pub async fn queue_insert_test() -> impl Responder {
+    // pub id: String,
+    // pub course: String,
+    // pub name: String,
+    // pub start: DateTime<Utc>,
+    // pub end: DateTime<Utc>,
+    // pub location: String,
+    // pub students: Vec<Student>,
+    // let ta = TA {id: String::from("Test"), course: String::from("Test"), name: String::from("Test"), start: chrono::offset::Utc::now(), end: chrono::offset::Utc::now(), location: String::from("Test"), students: vec![]};
+    // format!("{:?}", ta)
+    let db = db::connect_to_db().await;
+    db::insert_test(db).await;
+    format!("Done")
+    // format!("Done")
+    // db::insert_ta(db, ta);
+}
