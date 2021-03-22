@@ -4,8 +4,8 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TA {
-    #[serde(rename(deserialize = "_id"))]
-    pub id: ObjectId,
+    #[serde(skip_serializing_if = "Option::is_none", rename(deserialize = "_id"))]
+    pub id: Option<ObjectId>,
     pub course: String,
     pub name: String,
     pub start: DateTime<Utc>,

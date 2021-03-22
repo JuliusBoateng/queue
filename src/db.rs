@@ -37,7 +37,7 @@ pub async fn insert_ta(db: mongodb::Database, ta: queue::TA) -> () {
     // pub students: Vec<Student>,
     // format!(serde_json::to_string(&ta.Student).unwrap())
     let docs = vec![
-        doc! { "uuid" : format!("{}", ta.id), "course" : format!("{}", ta.course), "name" : format!("{}", ta.name), "start" : format!("{}", ta.start), "end" : format!("{}", ta.end), "location" : format!("{}", ta.location), "students" : "[]"}
+        doc! { "uuid" : format!("{:?}", ta.id), "course" : format!("{}", ta.course), "name" : format!("{}", ta.name), "start" : format!("{}", ta.start), "end" : format!("{}", ta.end), "location" : format!("{}", ta.location), "students" : "[]"}
     ];
     collection.insert_many(docs, None).await.expect("Can't Insert into Mongo");
 }

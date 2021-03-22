@@ -1,4 +1,4 @@
-use mongodb::{error::Error, Collection, bson::{doc, oid::ObjectId, from_bson, Bson}};
+use mongodb::{error::Error, Collection, bson::{doc, oid::ObjectId, from_bson, Bson, ser::to_document}};
 
 #[derive(Clone)]
 pub struct QueueService {
@@ -11,7 +11,17 @@ impl QueueService {
     }
 
     pub async fn create(&self, name: &str) -> Result<String, Error> {
-        let insert_result = self.collection.insert_one(doc! {"name": name}, None).await?;
+        let new_ta = queue::TA {
+            id: None,
+            course: "Course".to_string(),
+            name: name.to_string(),
+            start: chrono::Utc::now(),
+            end: chrono::Utc::now(),
+            location: "Location".to_string(),
+            students: Vec::new(),
+        };
+        let new_ta_doc = to_document(&new_ta).unwrap();
+        let insert_result = self.collection.insert_one(new_ta_doc, None).await?;
         Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
     }
 
