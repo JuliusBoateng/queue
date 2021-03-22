@@ -20,7 +20,12 @@ pub async fn queue_get(
     let result = web::block(|| action).await;
     println!("result {:?}", result);
     match result {
-        Ok(result) => HttpResponse::Ok().json(result),
+        Ok(result) => {
+            match result {
+                Some(result) => HttpResponse::Ok().json(result),
+                None => HttpResponse::NotFound().finish(),
+            }
+        }
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }

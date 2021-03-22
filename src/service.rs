@@ -16,7 +16,11 @@ impl QueueService {
     }
 
     pub async fn get_by_id(&self, id: &str) -> Result<Option<queue::TA>, Error> {
-        let filter = doc! {"_id": ObjectId::with_string(id).unwrap()};
+        let oid = ObjectId::with_string(id);
+        if oid.is_err() {
+            return Ok(None);
+        }
+        let filter = doc! {"_id": oid.unwrap()};
         println!("id {:?}", filter);
         let result = self.collection.find_one(filter, None).await?;
         println!("result {:?}", result);
