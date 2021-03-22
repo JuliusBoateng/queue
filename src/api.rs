@@ -1,4 +1,4 @@
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use chrono::Utc;
 
 #[get("/queues")]
@@ -9,6 +9,19 @@ pub async fn queue_all() -> impl Responder {
         time: Utc::now(),
         desc: "Help with queues".to_string(),
     })
+}
+
+#[post("/queues")]
+pub async fn queue_create(
+    app_data: web::Data<crate::AppState>,
+    new_ta: web::Json<queue::TA>,
+) -> impl Responder {
+    let action = app_data.service_container.user.create_ta(&new_ta).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => HttpResponse::Ok().json(result),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
 }
 
 #[get("/queues/{qid}")]
@@ -30,6 +43,7 @@ pub async fn queue_get(
     }
 }
 
+// FOR TESTING ONLY
 #[get("/insert/{name}")]
 pub async fn insert_test(
     app_data: web::Data<crate::AppState>,
@@ -38,7 +52,7 @@ pub async fn insert_test(
     let action = app_data.service_container.user.create(&name).await;
     let result = web::block(|| action).await;
     match result {
-        Ok(result) => HttpResponse::Ok().body(result),
+        Ok(result) => HttpResponse::Ok().json(result),
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }

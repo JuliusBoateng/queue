@@ -25,6 +25,11 @@ impl QueueService {
         Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
     }
 
+    pub async fn create_ta(&self, new_ta: &queue::TA) -> Result<String, Error> {
+        let new_ta_doc = to_document(new_ta).unwrap();
+        let insert_result = self.collection.insert_one(new_ta_doc, None).await?;
+        Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
+    }
     pub async fn get_by_id(&self, id: &str) -> Result<Option<queue::TA>, Error> {
         let oid = ObjectId::with_string(id);
         if oid.is_err() {
