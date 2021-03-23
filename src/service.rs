@@ -26,7 +26,7 @@ impl QueueService {
        
         let update_doc = doc! {"$set": to_document(updates).unwrap()};
         println!("{}", update_doc); 
-        let effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None);
+        let effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None).await?;
         /*if effect.modified_count < 1 {
             println!("Didn't modify any!"); 
         }*/ // unwrap() method not found in impl futures_lite:Future
