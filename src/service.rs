@@ -1,9 +1,26 @@
-use mongodb::{error::Error, Collection, bson::{doc, oid::ObjectId, from_bson, Bson, ser::to_document}};
+use std::env;
+use mongodb::{Client, options::ClientOptions, error::Error, Collection, bson::{doc, oid::ObjectId, from_bson, Bson, ser::to_document}};
 use futures_lite::stream::StreamExt; 
 
 #[derive(Clone)]
 pub struct QueueService {
     collection: Collection,
+}
+
+pub async fn connect_to_db() -> mongodb::Database {
+    // Parse a connection string into an options struct.
+    let db_connect = env::var("DBCONNECT").expect("Missing DBCONNECT environment variable");
+    let mut client_options = ClientOptions::parse(&db_connect).await.expect("Can't Connect to Mongo");
+    
+    // Manually set an option.
+    client_options.app_name = Some("project queue".to_string());
+
+    // Get a handle to the deployment.
+    let client = Client::with_options(client_options).expect("Can't get a handle to deployment");
+
+    let db = client.database("queue");
+
+    return db
 }
 
 impl QueueService {

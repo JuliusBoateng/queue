@@ -2,7 +2,6 @@ use actix_web::{App, HttpServer};
 use std::env;
 
 mod api; 
-mod db;
 mod service;
 
 pub struct ServiceContainer {
@@ -26,7 +25,7 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a number");
     
-    let database = db::connect_to_db().await;
+    let database = service::connect_to_db().await;
     let ta_collection = database.collection("ta");
 
     HttpServer::new(move || {
