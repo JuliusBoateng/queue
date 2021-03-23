@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .data(AppState { service_container })
             .service(api::queue_all)
             .service(api::queue_create)
+            .service(api::queue_search)
             .service(api::queue_get)
             .service(api::queue_delete)
             .service(api::insert_test)

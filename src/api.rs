@@ -1,10 +1,11 @@
-use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Search {
     q: String,
 }
+
 
 #[get("/queues")]
 pub async fn queue_all(
@@ -49,26 +50,29 @@ pub async fn queue_get(
     }
 }
 
-// // This handler gets called only if the request's query string contains `id` and `response_type` fields.
-// // The correct request for this handler would be `/index.html?id=64&response_type=Code"`.
-// async fn index(web::Query(info): web::Query<AuthRequest>) -> String {
-//     format!("Authorization request for client with id={} and type={:?}!", info.id, info.response_type)
-// }
-
 #[get("/queues/search")]
 pub async fn queue_search(
     app_data: web::Data<crate::AppState>,
     web::Query(search): web::Query<Search>,
 ) -> impl Responder {
-    format!("{:?}", search.q);
-     HttpResponse::Ok().json(search.q)
+    let action = app_data.service_container.user.get_all().await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => {
+            let mut query_rs = Vec::<queue::TA>::new();
+
+            for b in result {
+                if b.course.eq(&search.q) || b.name.eq(&search.q) || b.location.eq(&search.q) {
+                    query_rs.push(b);
+                }
+            }
+
+            HttpResponse::Ok().json(query_rs)
+        }
+
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
 }
-// pub async fn queue_search(
-//     app_data: web::Data<crate::AppState>,
-//     web::Query(info): web::Query<String>,
-// ) -> impl Responder {
-//     format!("{:?}", info)
-// }
 
 #[delete("/queues/{qid}")]
 pub async fn queue_delete(
@@ -82,6 +86,19 @@ pub async fn queue_delete(
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }
+#[put("/queues/{qid}")] 
+pub async fn update_queue( 
+    app_data: web::Data<crate::AppState>, 
+    web::Path(qid): web::Path<String>, 
+    updates: web::Json<queue::TA>,
+) -> impl Responder { 
+    let action = app_data.service_container.user.update_ta(&updates, &qid).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => HttpResponse::Ok().json(result),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+} 
 
 // FOR TESTING ONLY
 #[get("/insert/{name}")]
