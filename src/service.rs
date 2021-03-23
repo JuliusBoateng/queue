@@ -43,6 +43,17 @@ impl QueueService {
         }
     }
 
+    pub async fn delete_by_id(&self, id: &str) -> Result<Option<()>, Error> {
+        let oid = ObjectId::with_string(id);
+        // If the id is malformed, return None (404)
+        if let Err(_) = oid {
+            return Ok(None);
+        }
+        let filter = doc! {"_id": oid.unwrap()};
+        self.collection.delete_one(filter, None).await?;
+        Ok(Some(()))
+    }
+
     // FOR TESTING ONLY
     pub async fn create(&self, name: &str) -> Result<String, Error> {
         let new_ta = queue::TA {
