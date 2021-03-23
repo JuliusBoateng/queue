@@ -1,4 +1,4 @@
-use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 
 #[get("/queues")]
 pub async fn queue_all(
@@ -55,6 +55,21 @@ pub async fn queue_delete(
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }
+#[put("/queues/{qid}")] 
+pub async fn update_queue( 
+    app_data: web::Data<crate::AppState>, 
+    web::Path(qid): web::Path<String>, 
+    updates: web::Json<queue::TA>,
+) -> impl Responder { 
+    let action = app_data.service_container.user.update_ta(&updates, &qid).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => HttpResponse::Ok().json(result),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+} 
+
+
 
 // FOR TESTING ONLY
 #[get("/insert/{name}")]

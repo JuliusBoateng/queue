@@ -1,5 +1,5 @@
 use mongodb::{error::Error, Collection, bson::{doc, oid::ObjectId, from_bson, Bson, ser::to_document}};
-use futures_lite::stream::StreamExt;
+use futures_lite::stream::StreamExt; 
 
 #[derive(Clone)]
 pub struct QueueService {
@@ -16,6 +16,25 @@ impl QueueService {
         let insert_result = self.collection.insert_one(new_ta_doc, None).await?;
         Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
     }
+
+    pub async fn update_ta(&self, updates: &queue::TA, id: &str) -> Result<Option<queue::TA>, Error> {
+        if let Err(_) = oid { 
+            return Ok(None); 
+        } 
+        let update_doc = doc! {"$set": to_document(updates).unwrap()};
+
+        let effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None);
+        /*if effect.unwrap().modified_count < 1 {
+            ()
+        }*/ // unwrap() method not found in impl futures_lite:Future
+
+        let res = self.collection.find_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, None).await?; // changed to match get_by_id
+        match res{ // used to have .unwrap()  
+            None => Ok(None),
+            Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap())
+        }
+    }
+
 
     pub async fn get_all(&self) -> Result<Vec<queue::TA>, Error> {
         let mut cursor = self.collection.find(None, None).await?;
