@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{App, HttpServer};
 use std::env;
 
@@ -21,7 +22,7 @@ pub struct AppState {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> { 
     let port:u32 = env::var("PORT")
-        .unwrap_or_else(|_| "3000".to_string())
+        .unwrap_or_else(|_| "4000".to_string())
         .parse()
         .expect("PORT must be a number");
     
@@ -32,7 +33,10 @@ async fn main() -> std::io::Result<()> {
         let queue_service_worker = service::QueueService::new(ta_collection.clone());
         let service_container = ServiceContainer::new(queue_service_worker);
 
+        let cors = Cors::permissive();
+
         App::new()
+            .wrap(cors)
             .data(AppState { service_container })
             .service(api::queue_all)
             .service(api::queue_create)
