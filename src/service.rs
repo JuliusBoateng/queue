@@ -43,6 +43,20 @@ impl QueueService {
         }
     }
 
+    // pub async fn get_by_search(&self, query: &str) -> Result<Option<queue::TA>, Error> {
+    //     // let oid = ObjectId::with_string(id);
+    //     // // If the id is malformed, return None (404)
+    //     // if let Err(_) = oid {
+    //     //     return Ok(None);
+    //     // }
+    //     // let filter = doc! {"_id": oid.unwrap()};
+    //     // let result = self.collection.find_one(filter, None).await?;
+    //     // match result {
+    //     //     None => Ok(None),
+    //     //     Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap()),
+    //     // }
+    // }
+
     pub async fn delete_by_id(&self, id: &str) -> Result<Option<()>, Error> {
         let oid = ObjectId::with_string(id);
         // If the id is malformed, return None (404)

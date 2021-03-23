@@ -1,4 +1,10 @@
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct Search {
+    q: String,
+}
 
 #[get("/queues")]
 pub async fn queue_all(
@@ -42,6 +48,27 @@ pub async fn queue_get(
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }
+
+// // This handler gets called only if the request's query string contains `id` and `response_type` fields.
+// // The correct request for this handler would be `/index.html?id=64&response_type=Code"`.
+// async fn index(web::Query(info): web::Query<AuthRequest>) -> String {
+//     format!("Authorization request for client with id={} and type={:?}!", info.id, info.response_type)
+// }
+
+#[get("/queues/search")]
+pub async fn queue_search(
+    app_data: web::Data<crate::AppState>,
+    web::Query(search): web::Query<Search>,
+) -> impl Responder {
+    format!("{:?}", search.q);
+     HttpResponse::Ok().json(search.q)
+}
+// pub async fn queue_search(
+//     app_data: web::Data<crate::AppState>,
+//     web::Query(info): web::Query<String>,
+// ) -> impl Responder {
+//     format!("{:?}", info)
+// }
 
 #[delete("/queues/{qid}")]
 pub async fn queue_delete(
