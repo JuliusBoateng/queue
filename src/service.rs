@@ -13,22 +13,26 @@ impl QueueService {
 
     pub async fn create_ta(&self, new_ta: &queue::TA) -> Result<String, Error> {
         let new_ta_doc = to_document(new_ta).unwrap();
+        println!("New queue: {}", new_ta_doc); 
         let insert_result = self.collection.insert_one(new_ta_doc, None).await?;
         Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
     }
 
     pub async fn update_ta(&self, updates: &queue::TA, id: &str) -> Result<Option<queue::TA>, Error> {
+        let oid = ObjectId::with_string(id); 
         if let Err(_) = oid { 
             return Ok(None); 
         } 
+       
         let update_doc = doc! {"$set": to_document(updates).unwrap()};
-
+        println!("{}", update_doc); 
         let effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None);
-        /*if effect.unwrap().modified_count < 1 {
-            ()
+        /*if effect.modified_count < 1 {
+            println!("Didn't modify any!"); 
         }*/ // unwrap() method not found in impl futures_lite:Future
 
         let res = self.collection.find_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, None).await?; // changed to match get_by_id
+        println!("Updating resource with id {}", id); 
         match res{ // used to have .unwrap()  
             None => Ok(None),
             Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap())
