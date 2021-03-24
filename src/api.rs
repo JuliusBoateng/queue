@@ -46,6 +46,21 @@ pub async fn student_create(
     }
 }
 
+#[put("/students/{sid}")]
+pub async fn student_update( 
+    app_data: web::Data<crate::AppState>, 
+    web::Path(sid): web::Path<String>, 
+    updates: web::Json<queue::Student>,
+) -> impl Responder { 
+    let action = app_data.service_container.user.update_student(&updates, &sid).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => HttpResponse::Ok().json(result),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+} 
+
+
 #[get("/queues/{qid}")]
 pub async fn queue_get(
     app_data: web::Data<crate::AppState>,

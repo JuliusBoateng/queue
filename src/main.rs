@@ -22,7 +22,7 @@ pub struct AppState {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> { 
     let port:u32 = env::var("PORT")
-        .unwrap_or_else(|_| "4000".to_string())
+        .unwrap_or_else(|_| "3000".to_string())
         .parse()
         .expect("PORT must be a number");
     
@@ -40,7 +40,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .data(AppState { service_container })
             .service(api::queue_all)
-            .service(api::student_create) 
+            .service(api::student_create)
+            .service(api::student_update) 
             .service(api::queue_create)
             .service(api::queue_search)
             .service(api::queue_get)
