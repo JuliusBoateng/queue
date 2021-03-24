@@ -79,6 +79,25 @@ pub async fn queue_get(
     }
 }
 
+#[get("/queues/{qid}/students/{sid}")]
+pub async fn student_delete(
+    app_data: web::Data<crate::AppState>,
+    web::Path(qid): web::Path<String>, 
+    web::Path(sid): web::Path<String>, 
+) -> impl Responder { 
+    let action = app_data.service_container.user.student_delete_by_id(&qid, &sid).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => {
+            match result {
+                Some(result) => HttpResponse::Ok().json(result),
+                None => HttpResponse::NotFound().finish(),
+            }
+        }
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+}
+
 #[get("/queues/search")]
 pub async fn queue_search(
     app_data: web::Data<crate::AppState>,
@@ -108,7 +127,7 @@ pub async fn queue_delete(
     app_data: web::Data<crate::AppState>,
     web::Path(qid): web::Path<String>,
 ) -> impl Responder { 
-    let action = app_data.service_container.user.delete_by_id(&qid).await;
+    let action = app_data.service_container.user.queue_delete_by_id(&qid).await;
     let result = web::block(|| action).await;
     match result {
         Ok(_) => HttpResponse::NoContent().finish(),
