@@ -28,9 +28,10 @@ async fn main() -> std::io::Result<()> {
     
     let database = service::connect_to_db().await;
     let ta_collection = database.collection("ta");
+    let student_collection = database.collection("student"); 
 
     HttpServer::new(move || {
-        let queue_service_worker = service::QueueService::new(ta_collection.clone());
+        let queue_service_worker = service::QueueService::new(ta_collection.clone(), student_collection.clone());
         let service_container = ServiceContainer::new(queue_service_worker);
 
         let cors = Cors::permissive();
@@ -39,6 +40,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .data(AppState { service_container })
             .service(api::queue_all)
+            .service(api::student_create) 
             .service(api::queue_create)
             .service(api::queue_search)
             .service(api::queue_get)
