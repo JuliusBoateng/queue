@@ -50,14 +50,14 @@ impl QueueService {
         let cursor = self.collection.find_one(doc! {"_id": ObjectId::with_string(qid).unwrap()}, None).await?; // return just students from ta queue 
         match cursor{ 
             None => println!("Error: create_student did not find a queue with entered qid"),  
-            Some(doc) => if 0==0 {  
+            Some(doc) => if true {  
                     let ta_struct = from_bson::<queue::TA>(Bson::Document(doc)).unwrap();
                     let student_vector = ta_struct.students; 
                     let svlen = student_vector.len();
                     let sid = insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap();  
                     let soid = sid.to_string(); 
                     let key = format!("{}{}", "students.", svlen.to_string()); 
-                    let student_update = doc! {"$set": {key: soid}}; 
+                    let student_update = doc! {"$set": {key: soid}};
                     let _effect = self.collection.update_one(qfilter, student_update,  None ).await?; 
                 },  
         }          
