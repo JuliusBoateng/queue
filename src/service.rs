@@ -116,7 +116,7 @@ impl QueueService {
         Ok(result)
     }
 
-    pub async fn get_by_id(&self, id: &str) -> Result<Option<queue::TA>, Error> {
+    pub async fn ta_get_by_id(&self, id: &str) -> Result<Option<queue::TA>, Error> {
         let oid = ObjectId::with_string(id);
         // If the id is malformed, return None (404)
         if let Err(_) = oid {
@@ -128,6 +128,31 @@ impl QueueService {
             None => Ok(None),
             Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap()),
         }
+    }
+
+    pub async fn student_get_by_id(&self, sid: &str) -> Result<Option<queue::Student>, Error> {
+        let soid = ObjectId::with_string(sid);
+        // If the id is malformed, return None (404)
+        if let Err(_) = soid {
+            return Ok(None);
+        }
+        let filter = doc! {"_id": soid.unwrap()};
+        let result = self.student_collection.find_one(filter, None).await?;
+        match result {
+            None => Ok(None),
+            Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap()),
+        }
+    }
+
+    pub async fn student_get_all(&self) -> Result<Vec<queue::Student>, Error> {
+        let mut cursor = self.student_collection.find(None, None).await?;
+        let mut result = Vec::<queue::Student>::new();
+        while let Some(item) = cursor.next().await {
+            if let Ok(doc) = item {
+                result.push(from_bson(Bson::Document(doc)).unwrap());
+            }
+        }
+        Ok(result)
     }
 
     pub async fn queue_delete_by_id(&self, id: &str) -> Result<Option<()>, Error> {
