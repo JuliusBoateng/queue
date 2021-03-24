@@ -101,7 +101,7 @@ pub async fn queue_delete(
     }
 }
 #[put("/queues/{qid}")] 
-pub async fn update_queue( 
+pub async fn queue_update( 
     app_data: web::Data<crate::AppState>, 
     web::Path(qid): web::Path<String>, 
     updates: web::Json<queue::TA>,

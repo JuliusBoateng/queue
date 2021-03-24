@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .service(api::queue_search)
             .service(api::queue_get)
             .service(api::queue_delete)
+            .service(api::queue_update)
             .service(api::insert_test)
     })
     .bind(format!("0.0.0.0:{}", port))?
