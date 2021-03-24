@@ -82,18 +82,12 @@ pub async fn queue_get(
 #[delete("/queues/{qid}/students/{sid}")]
 pub async fn student_delete(
     app_data: web::Data<crate::AppState>,
-    web::Path(qid): web::Path<String>, 
-    web::Path(sid): web::Path<String>, 
+    web::Path((qid,sid)): web::Path<(String,String)>,
 ) -> impl Responder { 
     let action = app_data.service_container.user.student_delete_by_id(&qid, &sid).await;
     let result = web::block(|| action).await;
     match result {
-        Ok(result) => {
-            match result {
-                Some(result) => HttpResponse::Ok().json(result),
-                None => HttpResponse::NotFound().finish(),
-            }
-        }
+        Ok(_) => HttpResponse::NoContent().finish(),
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }

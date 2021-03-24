@@ -142,46 +142,52 @@ impl QueueService {
     }
 
     pub async fn student_delete_by_id(&self, qid: &str, sid: &str) -> Result<Option<()>, Error> {
-        let qoid = ObjectId::with_string(qid);
-        let soid = ObjectId::with_string(sid);
         // If the id is malformed, return None (404)
-        if let Err(_) = qoid {
+        if let Err(_) = ObjectId::with_string(qid) {
             return Ok(None);
         }
 
-        if let Err(_) = soid {
+        if let Err(_) = ObjectId::with_string(sid) {
             return Ok(None);
         }
         
         let qfilter = doc! {"_id": ObjectId::with_string(qid).unwrap()};
         let qresult = self.ta_collection.find_one(qfilter, None).await?;
+
         match qresult {
             None => println!("Error: student_delete did not find a queue with entered qid"),  
-            Some(doc) => if true {  
+            Some(doc) => if true {
                 let ta_struct = from_bson::<queue::TA>(Bson::Document(doc)).unwrap();
                 let mut student_vector = ta_struct.students;
+                let mut found = false;
                 let mut index: usize = usize::MAX;
-
+                
                 for (pos, student_id) in student_vector.iter().enumerate() {
                     if student_id.eq(sid) {
+                        found = true;
                         index = pos;
                         break;
                     }
                 }
 
-                if index != usize::MAX {
+                if found == true {
                     student_vector.remove(index);
                     let student_update = doc! {"$set": {"students": student_vector}};
                     let qfilter = doc! {"_id": ObjectId::with_string(qid).unwrap()};
-                    let _effect = self.ta_collection.update_one(qfilter, student_update,  None ).await?;
+                    self.ta_collection.update_one(qfilter, student_update, None).await?;
                 } else {
-                    return Ok(None); 
+                    return Ok(None);
                 }
             },  
         }
 
         let sfilter = doc! {"_id": ObjectId::with_string(sid).unwrap()};
-        self.student_collection.delete_one(sfilter, None).await?;
+        let  _student_effect = self.student_collection.delete_one(sfilter, None).await?;
+        
+        if _student_effect.deleted_count == 0 {
+            return Ok(None);
+        }
+
         Ok(Some(()))
     }
 
