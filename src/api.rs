@@ -31,6 +31,20 @@ pub async fn queue_create(
         Err(_) => HttpResponse::InternalServerError().finish()
     }
 }
+ 
+#[post("/queues/{qid}/students")]
+pub async fn student_create(
+    app_data: web::Data<crate::AppState>,
+    web::Path(qid): web::Path<String>, 
+    new_student: web::Json<queue::Student>,
+) -> impl Responder {
+    let action = app_data.service_container.user.create_student(&new_student, &qid).await;
+    let result = web::block(|| action).await;
+    match result {
+        Ok(result) => HttpResponse::Ok().json(result),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+}
 
 #[get("/queues/{qid}")]
 pub async fn queue_get(

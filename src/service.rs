@@ -5,6 +5,7 @@ use futures_lite::stream::StreamExt;
 #[derive(Clone)]
 pub struct QueueService {
     collection: Collection,
+    student_collection: Collection, 
 }
 
 pub async fn connect_to_db() -> mongodb::Database {
@@ -24,8 +25,8 @@ pub async fn connect_to_db() -> mongodb::Database {
 }
 
 impl QueueService {
-    pub fn new(collection: Collection) -> QueueService {
-        QueueService { collection }
+    pub fn new(collection: Collection, student_collection: Collection) -> QueueService {
+        QueueService { collection, student_collection }
     }
 
     pub async fn create_ta(&self, new_ta: &queue::TA) -> Result<String, Error> {
@@ -33,6 +34,36 @@ impl QueueService {
         let insert_result = self.collection.insert_one(new_ta_doc, None).await?;
         Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap())
     }
+    
+    pub async fn create_student(&self, new_student: &queue::Student, qid: &str) -> Result<String, Error> {
+        // add student to student collection 
+        let new_student_doc = to_document(new_student).unwrap();
+        let insert_result = self.student_collection.insert_one(new_student_doc, None).await?;
+        
+        // add student id to queue 
+        let qoid = ObjectId::with_string(qid);
+        /*// If the id is malformed, return None (404)
+        if let Err(_) = qoid {
+            return Ok(None);
+        }*/
+        let qfilter = doc! {"_id": qoid.unwrap()};
+        let cursor = self.collection.find_one(doc! {"_id": ObjectId::with_string(qid).unwrap()}, None).await?; // return just students from ta queue 
+        match cursor{ 
+            None => println!("Error: create_student did not find a queue with entered qid"),  
+            Some(doc) => if 0==0 {  
+                    let ta_struct = from_bson::<queue::TA>(Bson::Document(doc)).unwrap();
+                    let student_vector = ta_struct.students; 
+                    let svlen = student_vector.len();
+                    let sid = insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap();  
+                    let soid = sid.to_string(); 
+                    let key = format!("{}{}", "students.", svlen.to_string()); 
+                    let student_update = doc! {"$set": {key: soid}}; 
+                    let _effect = self.collection.update_one(qfilter, student_update,  None ).await?; 
+                },  
+        }          
+        Ok(insert_result.inserted_id.as_object_id().map(ObjectId::to_hex).unwrap()) 
+    }
+
 
     pub async fn update_ta(&self, updates: &queue::TA, id: &str) -> Result<Option<queue::TA>, Error> {
         let oid = ObjectId::with_string(id); 
@@ -41,7 +72,7 @@ impl QueueService {
         } 
        
         let update_doc = doc! {"$set": to_document(updates).unwrap()};
-        let effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None).await?;
+        let _effect = self.collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None).await?;
         /*if effect.modified_count < 1 {
             println!("Didn't modify any!"); 
         }*/ // unwrap() method not found in impl futures_lite:Future
