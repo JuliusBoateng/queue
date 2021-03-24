@@ -79,7 +79,7 @@ pub async fn queue_get(
     }
 }
 
-#[get("/queues/{qid}/students/{sid}")]
+#[delete("/queues/{qid}/students/{sid}")]
 pub async fn student_delete(
     app_data: web::Data<crate::AppState>,
     web::Path(qid): web::Path<String>, 

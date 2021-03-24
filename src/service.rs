@@ -180,7 +180,7 @@ impl QueueService {
             },  
         }
 
-        let sfilter = doc! {"_id": ObjectId::with_string(qid).unwrap()};
+        let sfilter = doc! {"_id": ObjectId::with_string(sid).unwrap()};
         self.student_collection.delete_one(sfilter, None).await?;
         Ok(Some(()))
     }

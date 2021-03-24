@@ -22,7 +22,7 @@ pub struct AppState {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> { 
     let port:u32 = env::var("PORT")
-        .unwrap_or_else(|_| "3000".to_string())
+        .unwrap_or_else(|_| "4000".to_string())
         .parse()
         .expect("PORT must be a number");
     
