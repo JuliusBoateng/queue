@@ -133,8 +133,10 @@ pub async fn queue_search(
         Ok(result) => {
             let mut query_rs = Vec::<queue::TAResponse>::new();
 
+            let search_lower = search.q.to_lowercase();
+            let search_str = search_lower.as_str();
             for b in result {
-                if b.course.eq(&search.q) || b.name.eq(&search.q) || b.location.eq(&search.q) {
+                if b.course.to_lowercase().contains(&search_str) || b.name.to_lowercase().contains(&search_str) || b.location.to_lowercase().contains(&search_str) {
                     query_rs.push(b);
                 }
             }
