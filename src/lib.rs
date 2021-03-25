@@ -15,6 +15,17 @@ pub struct TA {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct TAResponse {
+    #[serde()]
+    pub course: String,
+    pub name: String,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
+    pub location: String,
+    pub students: Vec<Student>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Student {
     #[serde(skip_serializing_if = "Option::is_none", rename(deserialize = "_id"))]
     pub id: Option<ObjectId>,

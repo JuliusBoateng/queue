@@ -29,6 +29,26 @@ impl QueueService {
         QueueService { ta_collection, student_collection }
     }
 
+    pub async fn convert_ta_reponse(&self, ta: queue::TA) -> queue::TAResponse {
+        let mut new_students =  Vec::<queue::Student>::new();
+        
+        for student_id in &ta.students {
+            let obj = QueueService::student_get_by_id(&self, &student_id).await.expect("Get students failed");
+            new_students.push(obj.unwrap())
+        }
+        
+       let response = queue::TAResponse {
+            course: ta.course,
+            name: ta.name,
+            start: ta.start,
+            end: ta.end,
+            location: ta.location,
+            students: new_students,
+        };
+
+        return response
+    }
+
     pub async fn create_ta(&self, new_ta: &queue::TA) -> Result<String, Error> {
         let new_ta_doc = to_document(new_ta).unwrap();
         let insert_result = self.ta_collection.insert_one(new_ta_doc, None).await?;
@@ -116,7 +136,7 @@ impl QueueService {
         Ok(result)
     }
 
-    pub async fn ta_get_by_id(&self, id: &str) -> Result<Option<queue::TA>, Error> {
+    pub async fn ta_get_by_id(&self, id: &str) -> Result<Option<queue::TAResponse>, Error> {
         let oid = ObjectId::with_string(id);
         // If the id is malformed, return None (404)
         if let Err(_) = oid {
@@ -126,7 +146,12 @@ impl QueueService {
         let result = self.ta_collection.find_one(filter, None).await?;
         match result {
             None => Ok(None),
-            Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap()),
+            Some(doc) => {
+                let ta_struc = from_bson(Bson::Document(doc)).unwrap();
+                let new_struc = QueueService::convert_ta_reponse(&self,ta_struc).await;
+                let new_doc =  to_document(&new_struc).unwrap();
+                Ok(from_bson(Bson::Document(new_doc)).unwrap())
+            }
         }
     }
 
