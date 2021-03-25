@@ -38,6 +38,7 @@ impl QueueService {
         }
         
        let response = queue::TAResponse {
+            id: ta.id,
             course: ta.course,
             name: ta.name,
             start: ta.start,
@@ -85,7 +86,7 @@ impl QueueService {
     }
 
 
-    pub async fn update_ta(&self, updates: &queue::TA, id: &str) -> Result<Option<queue::TA>, Error> {
+    pub async fn update_ta(&self, updates: &queue::TA, id: &str) -> Result<Option<queue::TAResponse>, Error> {
         let oid = ObjectId::with_string(id); 
         if let Err(_) = oid { 
             return Ok(None); 
@@ -93,14 +94,16 @@ impl QueueService {
        
         let update_doc = doc! {"$set": to_document(updates).unwrap()};
         let _effect = self.ta_collection.update_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, update_doc, None).await?;
-        /*if effect.modified_count < 1 {
-            println!("Didn't modify any!"); 
-        }*/ // unwrap() method not found in impl futures_lite:Future
 
         let res = self.ta_collection.find_one(doc! {"_id": ObjectId::with_string(id).unwrap()}, None).await?; // changed to match get_by_id
         match res{ // used to have .unwrap()  
             None => Ok(None),
-            Some(doc) => Ok(from_bson(Bson::Document(doc)).unwrap())
+            Some(doc) => {
+                let ta_struc = from_bson(Bson::Document(doc)).unwrap();
+                let new_struc = QueueService::convert_ta_reponse(&self,ta_struc).await;
+                let new_doc =  to_document(&new_struc).unwrap();
+                Ok(from_bson(Bson::Document(new_doc)).unwrap())
+            }
         }
     }
  
@@ -124,13 +127,16 @@ impl QueueService {
     }
 
 
-    pub async fn get_all(&self) -> Result<Vec<queue::TA>, Error> {
+    pub async fn get_all(&self) -> Result<Vec<queue::TAResponse>, Error> {
         let mut cursor = self.ta_collection.find(None, None).await?;
         // let result = cursor.collect::<queue::TA>().await?;
-        let mut result = Vec::<queue::TA>::new();
+        let mut result = Vec::<queue::TAResponse>::new();
         while let Some(item) = cursor.next().await {
             if let Ok(doc) = item {
-                result.push(from_bson(Bson::Document(doc)).unwrap());
+                let ta_struc = from_bson(Bson::Document(doc)).unwrap();
+                let new_struc = QueueService::convert_ta_reponse(&self,ta_struc).await;
+                let new_doc =  to_document(&new_struc).unwrap();
+                result.push(from_bson(Bson::Document(new_doc)).unwrap());
             }
         }
         Ok(result)

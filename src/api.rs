@@ -131,7 +131,7 @@ pub async fn queue_search(
     let result = web::block(|| action).await;
     match result {
         Ok(result) => {
-            let mut query_rs = Vec::<queue::TA>::new();
+            let mut query_rs = Vec::<queue::TAResponse>::new();
 
             for b in result {
                 if b.course.eq(&search.q) || b.name.eq(&search.q) || b.location.eq(&search.q) {
