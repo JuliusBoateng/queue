@@ -1,35 +1,56 @@
+use actix_cors::Cors;
 use actix_web::{App, HttpServer};
 use std::env;
-use mongodb::{Client, options::ClientOptions};
 
-mod api;
+mod api; 
+mod service;
+
+pub struct ServiceContainer {
+  user: service::QueueService,
+}
+
+impl ServiceContainer {
+  pub fn new(user: service::QueueService) -> Self {
+    ServiceContainer { user }
+  }
+}
+
+pub struct AppState {
+  service_container: ServiceContainer,
+}
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    // Parse a connection string into an options struct.
-    let db_connect = env::var("DBCONNECT").expect("Missing DBCONNECT environment variable");
-    let mut client_options = ClientOptions::parse(&db_connect).await.expect("Can't Connect to Mongo");
-    
-    // Manually set an option.
-    client_options.app_name = Some("My App".to_string());
-
-    // Get a handle to the deployment.
-    let client = Client::with_options(client_options).expect("Can't get a handle to deployment");
-
-    // List the names of the databases in that deployment.
-    for db_name in client.list_database_names(None, None).await.expect("Can't list database names") {
-        println!("It worked: {}", db_name);
-    }
-
+async fn main() -> std::io::Result<()> { 
     let port:u32 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse()
         .expect("PORT must be a number");
+    
+    let database = service::connect_to_db().await;
+    let ta_collection = database.collection("ta");
+    let student_collection = database.collection("student"); 
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
+        let queue_service_worker = service::QueueService::new(ta_collection.clone(), student_collection.clone());
+        let service_container = ServiceContainer::new(queue_service_worker);
+
+        let cors = Cors::permissive();
+
         App::new()
+            .wrap(cors)
+            .data(AppState { service_container })
+            .service(api::student_all)
+            .service(api::student_create)
+            .service(api::student_update)
+            .service(api::student_delete)
+            .service(api::student_get_one)
             .service(api::queue_all)
+            .service(api::queue_create)
+            .service(api::queue_search)
             .service(api::queue_get)
+            .service(api::queue_delete)
+            .service(api::queue_update)
+            .service(api::insert_test)
     })
     .bind(format!("0.0.0.0:{}", port))?
     .run()
