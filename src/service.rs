@@ -155,8 +155,7 @@ impl QueueService {
             Some(doc) => {
                 let ta_struc = from_bson(Bson::Document(doc)).unwrap();
                 let new_struc = QueueService::convert_ta_reponse(&self,ta_struc).await;
-                let new_doc =  to_document(&new_struc).unwrap();
-                Ok(from_bson(Bson::Document(new_doc)).unwrap())
+                Ok(Some(new_struc))
             }
         }
     }
